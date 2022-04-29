@@ -132,7 +132,7 @@ auto bstree<T>::find(T val){
         return find_struc(0,0);
     
     auto t = root;
-    auto father = root;
+    pnode father = nullptr;
     while(t){
         if(val > t->val) //要查找的值大于这个节点,应该找右节点
         {
@@ -184,6 +184,12 @@ bool bstree<T>::delete_node(T val){
 
     if(child_counts(current) == 0) //没有子节点,直接删除即可
     {
+        if(father == nullptr)
+        {
+            root = nullptr; 
+            return true;
+        }
+
         if(father->left && father->left->val == current->val)
             father->left = nullptr;
         else if(father->right && father->right->val == current->val)
@@ -192,6 +198,16 @@ bool bstree<T>::delete_node(T val){
             assert(0); //find方法有误
     }
     else if(child_counts(current) == 1){//要删除的节点只有一个子节点
+
+        if(father == 0){
+            if(father->left)
+                root = father->left;
+            else
+                root = father->right;
+
+            return true;
+        }
+
         if(father->left && father->left->val == current->val){ //要删除的节点是父节点的左节点
             if(current->left) //
                 father->left = current->left;
@@ -209,8 +225,15 @@ bool bstree<T>::delete_node(T val){
     else if(child_counts(current) == 2){//要删除的节点有两个子节点
         //将左子树挂到右子树的最左子树
 
+        if(father == nullptr)
+            root = current->right;//根节点换成原右节点
+        else{
+        if(father->left && father->left->val == current->val)
+            father->left = current->right;
+        else
+            father->right = current->right;
+        }
 
-        father->right = current->right;
 
         auto recur_left_end = current->right;
         while(true){
@@ -233,64 +256,19 @@ bool bstree<T>::delete_node(T val){
 int main()
 {
     bstree<int> test;
-    test.insert(1);
-    test.insert(3);
-    test.insert(2);
+    test.insert(25);
+    test.insert(18);
+    test.insert(69);
     test.insert(5);
-    test.insert(7);
-    test.insert(9);
-    test.insert(8);
-    test.insert(4);
-    test.insert(6);
+    test.insert(20);
+    test.insert(32);
+    test.insert(45);
 
-#if 0 //测试重复插入
-    auto insert = test.insert(100);
-    cout.setf(ios_base::boolalpha);
-    cout << "insert : " << insert << endl;
-#endif
-
-#if 0 //测试树的形状是否正确
-    test.pre_order(test.get_root());
-    cout << endl;
-    test.in_order(test.get_root());//升序序列
-    cout << endl;
-    test.post_order(test.get_root()); 
-    cout << endl;
-#endif
-
-#if 0 //测试find和child_counts
-    auto [father,current] = test.find(6);
-    if(!father && !current)
-        cout << "val not found\n";
-    else{
-        cout << "father -> val : " << father->val << " ";
-        cout << "find val -> : " << current->val << endl;
-    }
-    cout << "child counts :" << test.child_counts(father) << endl;
-#endif
-
-#if 0 //测试没有子树节点删除
-    bool delete_ok = test.delete_node(8);
-    cout << "delete ok : " << delete_ok << endl;
-    test.in_order(test.get_root());
-    cout << endl;
-#endif 
-
-#if 0//测试单节点子树删除
-    bool delete_ok = test.delete_node(9);
-    cout << "delete ok : " << delete_ok << endl;
-    test.in_order(test.get_root());
-    cout << endl;
-#endif
-
-#if 1 //测试双节点子树删除
-    bool delete_ok = test.delete_node(7);
-    cout << "delete ok : " << delete_ok << endl;
-    test.in_order(test.get_root());
-    cout << endl;
-#endif
-
-
+    test.insert(16);
+    test.delete_node(32);
+    test.delete_node(18);
+    test.delete_node(25);   
+    test.in_order(test.get_root()); cout << endl;
 
     return 0;
 }
