@@ -54,6 +54,7 @@ public:
     auto find(T val);
     void pre_order(pnode root);
     void in_order(pnode root);
+    void level_order(pnode root);
     void post_order(pnode root);
     int child_counts(pnode node);
     bool delete_node(T val);
@@ -155,6 +156,27 @@ void bstree<T>::post_order(pnode root) {
         post_order(root->right);
         cout << root->val << " ";
     }
+}
+
+template<typename T>
+void bstree<T>::level_order(pnode root) {
+    pnode t = nullptr;
+    queue<pnode> que;
+    que.push(root);
+
+    while(que.size()){
+        t = que.front();
+        que.pop();
+        if(!t) continue;
+        //
+        cout << t->val << endl;
+        //
+        que.push(t->left);
+        que.push(t->right);
+
+    }
+    
+
 }
 
 template<typename T>
@@ -421,6 +443,6 @@ int main()
     test.insert(3);
     test.insert(4);
 
-    test.in_order(test.get_root());
+    test.level_order(test.get_root());
     return 0;
 }
