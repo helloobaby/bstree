@@ -28,6 +28,15 @@ public:
         tree_node(T val) :val(val) {}
         tree_node() {}
     };
+
+    enum class rotate_type
+    {
+        balance,
+        left_rotate, 
+        right_rotate,
+        left_right_rotate,
+        right_left_rotate,
+    };
     using node = tree_node;
     using pnode = node*;//vector<typename bstree<T>::pnode>
     using cpnode = node const*;
@@ -50,6 +59,8 @@ public:
     bool delete_node(T val);
     int get_node_depth(const cpnode node);
     int get_node_height(const pnode node);
+    rotate_type is_node_balanced(const pnode node);
+    void rotate(pnode node, rotate_type type);
 private:
     pnode root = nullptr; //vc会默认初始化为空指针,gcc不会,所以指定初始化为null比较稳妥
 
@@ -66,13 +77,15 @@ bool bstree<T>::insert(T val)
     if (a || b)
         return false;
 
+    pnode t = nullptr;
+
     if (!root)
     {
         root = new node; //除了这里,其他地方都不应该修改root
         root->val = val;
     }
     else {
-        pnode t = root;
+        t = root;
         while (t) {
             if (val > t->val) //插入的数比根节点大
             {
@@ -82,7 +95,7 @@ bool bstree<T>::insert(T val)
                 else //右节点为空,直接插入就可以
                 {
                     t->right = new node(val);
-                    return true;
+                    break;
                 }
             }
             else if (val < t->val) {
@@ -92,13 +105,22 @@ bool bstree<T>::insert(T val)
                 else
                 {
                     t->left = new node(val);
-                    return true;
+                    break;
                 }
             }
         }
+
+        auto type = rotate_type::balance;
+        auto father = find(t->val).father;
+        if ((type = is_node_balanced(father)) != rotate_type::balance) {
+            rotate(father, type);
+        }
+
+
     }
 
-    //assert(0);
+
+
     return true;
 }
 
@@ -167,7 +189,7 @@ auto bstree<T>::find(T val) {
         }
     }
 
-    assert(0);
+    return find_struc{ 0,0 };
 }
 
 //
@@ -287,10 +309,97 @@ int bstree<T>::get_node_height(const pnode node)
     if (!node->left && !node->right)
         return 1;
 
-    int h1 = get_node_height(node->left)+1;
-    int h2 = get_node_height(node->right)+1;
+    int h1 = get_node_height(node->left) + 1;
+    int h2 = get_node_height(node->right) + 1;
 
     return std::max(h1, h2);
+}
+
+//确定某个节点是否平衡
+template<typename T>
+bstree<T>::rotate_type bstree<T>::is_node_balanced(const pnode node)
+{
+    if (!node)
+        return rotate_type::balance;  //true还是false?
+
+    int left_child_height = get_node_height(node->left);
+    int right_child_height = get_node_height(node->right);
+    //debug   
+    cout << "root val : " << node->val << endl;
+    cout << "left child height : " << left_child_height << endl;
+    cout << "right child height : " << right_child_height << endl;
+    //
+
+        //左子树过高
+    if (left_child_height - right_child_height > 1)
+    {
+        if (node->left->right)
+            return rotate_type::left_right_rotate;
+        return rotate_type::right_rotate;
+    }
+    else if (right_child_height - left_child_height > 1) {
+        if (node->right->left)
+            return rotate_type::right_left_rotate;
+        return rotate_type::left_rotate;
+    }
+
+
+
+    return rotate_type::balance;
+}
+
+template<typename T>
+void bstree<T>::rotate(pnode node, rotate_type type)
+{
+    pnode child = nullptr; //child是子树新的根
+
+    //左旋
+    if (type == rotate_type::left_rotate) {
+        child = node->right;
+        node->right = child->left;
+        child->left = node;
+    }
+    else if (type == rotate_type::right_rotate) {
+        child = node->left;
+        node->left = child->right;
+        child->right = node;
+    }
+    else if (type == rotate_type::left_right_rotate) {
+        child = node->left;
+        node->left = child->right;
+        node->left->left = child;
+
+        child = node->left;
+        child->right = 0;
+        child->left->right = 0;
+        node->left = child->right;
+        child->right = node;
+    }
+    else if(type == rotate_type::right_left_rotate)
+    {
+        child = node->right;
+        node->right = child->left;
+        node->right->right = child;
+
+        child = node->right;
+        node->right = child->left;
+        child->left = node;
+        
+        child->right->left = 0; //原来节点是有值的，转之后置空
+
+    }
+
+    //因为旋转子树,需要更换根节点,所以要让父节点有正确的值
+    auto father = find(node->val).father;
+    if (!father)
+        root = child;
+    else
+    {//判断原根是上级父节点的左子树还是右子树
+        if (father->left->val == node->val)
+            father->left = child;
+        else
+            father->right = child;
+    }
 }
 
 int main()
@@ -302,10 +411,16 @@ int main()
     test.insert(5);
     test.insert(20);
     test.insert(32);
-    test.insert(45);
-    test.insert(68);
-    
+    test.insert(31);
+    //test.insert(45);
+    test.insert(70);
+    test.insert(71);
+    test.insert(22);
+    test.insert(21);
+    test.insert(5);
+    test.insert(3);
+    test.insert(4);
 
-
+    test.in_order(test.get_root());
     return 0;
 }
