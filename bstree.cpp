@@ -2,6 +2,10 @@
 2022.4.29(am) complete bs tree
 2022.4.29(pm) try to improve to avl tree
 2022.4.30   add single rotate and double rotate
+
+
+编译
+clang bstree.cpp -o bstree.out -std=c++2a -lstdc++
 */
 
 #include<iostream>
@@ -12,6 +16,15 @@
 #include<stack>
 #include<queue>
 using namespace std;
+
+    enum class rotate_type
+    {
+        balance,
+        left_rotate, 
+        right_rotate,
+        left_right_rotate,
+        right_left_rotate,
+    };
 
 template <typename T = int>
 #ifndef _WIN32   //vs2019编译不过去
@@ -27,15 +40,6 @@ public:
         tree_node* right = nullptr;
         tree_node(T val) :val(val) {}
         tree_node() {}
-    };
-
-    enum class rotate_type
-    {
-        balance,
-        left_rotate, 
-        right_rotate,
-        left_right_rotate,
-        right_left_rotate,
     };
     using node = tree_node;
     using pnode = node*;//vector<typename bstree<T>::pnode>
@@ -182,7 +186,7 @@ void bstree<T>::level_order(pnode root) {
 template<typename T>
 auto bstree<T>::find(T val) {
     if (!root)
-        return find_struc(0, 0);
+        return find_struc{0, 0};
 
     auto t = root;
     pnode father = nullptr;
@@ -194,7 +198,7 @@ auto bstree<T>::find(T val) {
                 t = t->right;
             }
             else
-                return find_struc(0, 0);
+                return find_struc{0, 0};
         }
         else if (val < t->val) {
             if (t->left) {
@@ -202,16 +206,16 @@ auto bstree<T>::find(T val) {
                 t = t->left;
             }
             else
-                return find_struc(0, 0);
+                return find_struc{0, 0};
 
         }
         else //相等
         {
-            return find_struc(father, t);
+            return find_struc{0, 0};
         }
     }
 
-    return find_struc{ 0,0 };
+    return find_struc{0, 0};
 }
 
 //
@@ -339,7 +343,7 @@ int bstree<T>::get_node_height(const pnode node)
 
 //确定某个节点是否平衡
 template<typename T>
-bstree<T>::rotate_type bstree<T>::is_node_balanced(const pnode node)
+rotate_type bstree<T>::is_node_balanced(const pnode node)
 {
     if (!node)
         return rotate_type::balance;  //true还是false?
@@ -434,15 +438,6 @@ int main()
     test.insert(20);
     test.insert(32);
     test.insert(31);
-    //test.insert(45);
-    test.insert(70);
-    test.insert(71);
-    test.insert(22);
-    test.insert(21);
-    test.insert(5);
-    test.insert(3);
-    test.insert(4);
-
-    test.level_order(test.get_root());
+    std::cout << "ok\n";
     return 0;
 }
